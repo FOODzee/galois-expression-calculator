@@ -19,21 +19,24 @@ class MathExpScannerSuite extends FunSpec {
       }
     }
 
-    it("float") {
+    it("number") {
       val p = parse(MathExpScanner.number) _
-
-      // Float
-      assert(p(".1") === Right(NUMBER(0.1)))
-      assert(p("1.") === Right(NUMBER(1)))
-      assert(p("1f") === Right(NUMBER(1)))
-      assert(p("1.0") === Right(NUMBER(1)))
-      assert(p("-1.0") === Right(NUMBER(-1.0)))
-      assert(p("1.02") === Right(NUMBER(1.02)))
 
       // Int
       assert(p("1") === Right(NUMBER(1)))
+      assert(p("10") === Right(NUMBER(0x10)))
+      assert(p("E") === Right(NUMBER(0xe)))
+      assert(p("d") === Right(NUMBER(0xD)))
+      assert(p("1f") === Right(NUMBER(0x1f)))
 
-      // Long
+      // Float: parses until dot
+      assert(p(".1").isLeft)
+      assert(p("1.") === Right(NUMBER(1)))
+      assert(p("1.0") === Right(NUMBER(1)))
+      assert(p("-1.0") === Right(NUMBER(-1)))
+      assert(p("1.02") === Right(NUMBER(1)))
+
+      // Long: parses until L
       assert(p("1L") === Right(NUMBER(1)))
 
       // Invaild
@@ -51,12 +54,12 @@ class MathExpScannerSuite extends FunSpec {
 
   describe("For math expression") {
     it("parse string to tokens correctly") {
-      val expression = "1.0 + 2 * $data - power(2, 10) / 4."
+      val expression = "1 + 2 * $data - power(2, 10) / 4"
       assert(
         MathExpScanner(expression) ===
         Right(
           List(NUMBER(1), ADD, NUMBER(2), MULTIPLY, VAR_NAME("data"), MINUS,
-               FUNC_NAME("power"), LEFT_PARENTHESIS, NUMBER(2), COMMA, NUMBER(10), RIGHT_PARENTHESIS,
+               FUNC_NAME("power"), LEFT_PARENTHESIS, NUMBER(2), COMMA, NUMBER(0x10), RIGHT_PARENTHESIS,
                DIVIDE, NUMBER(4))))
     }
   }

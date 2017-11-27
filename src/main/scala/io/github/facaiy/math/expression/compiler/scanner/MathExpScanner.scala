@@ -19,7 +19,11 @@ object MathExpScanner extends JavaTokenParsers {
   def leftParenthesis: Parser[Delimiter] = LEFT_PARENTHESIS.toString ^^ (_ => LEFT_PARENTHESIS)
   def rightParenthesis: Parser[Delimiter] = RIGHT_PARENTHESIS.toString ^^ (_ => RIGHT_PARENTHESIS)
 
-  def number: Parser[NUMBER] = floatingPointNumber ^^ (x => NUMBER(x.toDouble))
+
+  /** An integer, without sign or with a negative sign. */
+  def hexNumber: Parser[String] = """-?(\p{XDigit})+""".r
+
+  def number: Parser[NUMBER] = hexNumber ^^ (x => NUMBER(Integer.parseInt(x, 16)))
 
   def variable: Parser[VAR_NAME] = "$" ~ ident ^^ {
     case _ ~ n => VAR_NAME(n)

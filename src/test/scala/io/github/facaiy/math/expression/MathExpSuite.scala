@@ -8,13 +8,13 @@ import org.scalatest.FunSpec
 class MathExpSuite extends FunSpec {
   describe("MathExp") {
     it("valid string") {
-      val str = "1.0 + sqrt(2 * $a1) + $a2 ** 2"
+      val str = "1 + (2 * $a1) + $a2 ** 2"
 
       val ex = MathExp.parse(str)
 
-      assert(ex.eval(Map("a1" -> 0.0, "a2" -> 0)) === 1)
-      assert(ex.eval(Map("a1" -> 2.0, "a2" -> 1)) === 4)
-      assert(ex.eval(Map("a1" -> 8.0, "a2" -> 2)) === 9)
+      assert(ex.eval(Map("a1" -> 0, "a2" -> 0)) === 1)
+      assert(ex.eval(Map("a1" -> 2, "a2" -> 1)) === 6)
+      assert(ex.eval(Map("a1" -> 8, "a2" -> 2)) === 21)
     }
 
     it("invalid string") {

@@ -10,7 +10,7 @@ case class MathExpScannerError(msg: String) extends MathExpError
 case class MathExpParserError(msg: String) extends MathExpError
 
 object MathExp {
-  def parse(s: String): Expression[String => Double, Double] =
+  def parse(s: String): Expression[String => Int, Int] =
     MathExpCompiler(s) match {
       case Right(ts) => Expression.toExpression(ts)
       case Left(e) => throw new IllegalArgumentException(e.toString)

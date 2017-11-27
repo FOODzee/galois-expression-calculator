@@ -1,4 +1,4 @@
-# math-expression-parser
+# galois-expression-calculator
 
 A scala library for parsing mathemitical expressions with support for parentheses and variables and evaluating them in finite (Galois) field `GF(2^4)` with arbitrary reduction polinomial.
 

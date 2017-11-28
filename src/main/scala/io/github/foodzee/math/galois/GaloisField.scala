@@ -5,7 +5,7 @@ import io.github.foodzee.math.Field
 /**
   * @author foodzee.
   */
-class GaloisField(p: Int, n: Int, poly: Int) extends Field {
+class GaloisField(p: Int, n: Int, poly: Int) extends Field[Int] {
   require(p == 2 && n == 4, "Only GF(2^4) is supported for now.")
 
   /** Multiplication table. */
@@ -32,18 +32,19 @@ class GaloisField(p: Int, n: Int, poly: Int) extends Field {
     }
   assert(m.size == 16*16)
 
-  type E = Int
+  def U = 1
+  def asInt(a: Int) = a
 
-  def add(a: E, b: E): E = a ^ b
-  def neg(a: E): E = a
+  def add(a: Int, b: Int): Int = a ^ b
+  def neg(a: Int): Int = a
 
-  def mul(a: E, b: E): E = {
+  def mul(a: Int, b: Int): Int = {
     require(0 <= a && a <= 0xF)
     require(0 <= b && b <= 0xF)
     m(a + b*16)
   }
 
-  def inv(a: E): E = (0 to 0xF find (b => mul(a, b) == 1)).get
+  def inv(a: Int): Int = (0 to 0xF find (b => mul(a, b) == 1)).get
 
   def printMultiplicationTable(): Unit = {
     for (a <- -1 to 0xF) {

@@ -1,6 +1,7 @@
 package io.github.facaiy.math.expression
 
 import io.github.facaiy.math.expression.compiler.parser._
+import io.github.foodzee.math.Field
 
 /**
  * Created by facai on 6/19/17.
@@ -15,19 +16,19 @@ case class Expression[A, B](eval: A => B) {
 object Expression {
   import FunctionRegister._
 
-  def toExpression(ast: MathExpAST): Expression[String => Int, Int] = ast match {
-    case Constant(d: Int) => Expression(_ => d)
+  def toExpression[E](ast: MathExpAST)(implicit f: Field[E]): Expression[String => E, E] = ast match {
+    case Constant(d: E) => Expression(_ => d)
     case c @ Constant(_) => throw new IllegalArgumentException(c.toString)
     case Variable(n) => Expression(f => f(n))
     case Operator2(op, v1, v2) =>
-      toExpression(v1).map2(toExpression(v2))(function2(op))
-    case f @ OperatorN(op, as) =>
-      val args = sequence(as.map(toExpression)).map(_.toArray)
-      args.map{ xs: Array[Int] =>
+      toExpression(v1)(f).map2(toExpression(v2))(function2(f)(op))
+    case opn @ OperatorN(op, as) =>
+      val args = sequence(as.map(toExpression(_)(f))).map(_.toSeq)
+      args.map{ xs: Seq[E] =>
         xs.length match {
-          case 1 => function1(op)(xs.head)
-          case 2 => function2(op)(xs.head, xs(2))
-          case _ => throw new UnsupportedOperationException(f.toString)
+          case 1 => function1(f)(op)(xs.head)
+          case 2 => function2(f)(op)(xs.head, xs(2))
+          case _ => throw new UnsupportedOperationException(opn.toString)
         }
       }
   }
@@ -40,13 +41,16 @@ object Expression {
 }
 
 object FunctionRegister {
-  val function1: Map[String, Int => Int] = Map()
+  def function1[E](f: Field[E]): Map[String, E => E] = Map(
+    "inv" -> f.inv,
+    "-" -> f.neg
+  )
 
-  val function2: Map[String, (Int, Int) => Int] = Map(
-    "+" -> (_ + _),
-    "-" -> (_ - _),
-    "*" -> (_ * _),
-    "/" -> (_ / _),
-    "**" -> ((a, b) => (1 /: (for (_ <- 1 to b) yield a))(_ * _))
+  def function2[E](f: Field[E]): Map[String, (E, E) => E] = Map(
+    "+" -> f.add,
+    "-" -> f.sub,
+    "*" -> f.mul,
+    "/" -> f.div,
+    "**" -> ((a,b) => f.pow(a, f.asInt(b)))
   )
 }

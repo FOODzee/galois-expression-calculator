@@ -6,38 +6,61 @@ import io.github.foodzee.math.Field
   * @author foodzee.
   */
 class GaloisField(p: Int, n: Int, poly: Int) extends Field {
-  assert(p == 2 && n == 4, "Only GF(2^4) is supported for now.")
+  require(p == 2 && n == 4, "Only GF(2^4) is supported for now.")
 
   /** Multiplication table. */
-  val m =
-    for (a <- 0 until 0xF;
-         b <- 0 until 0xF)
-      yield {
-        var c = 0
+  private val m =
+    for (a <- 0 to 0xF; b <- 0 to 0xF) yield {
+      var c = 0
 
-        // Bitwise ("peasant") multiplication, using galois addition
-        for (bit <- 3 to 0) {
-          if ((b & (1<<bit)) != 0) {
-            c = add(c, a << bit)
-          }
+      // Bitwise ("peasant") multiplication, using galois addition
+      for (bit <- 3 to (0, -1)) {
+        if ((b & (1<<bit)) != 0) {
+          c = add(c, a << bit)
         }
-
-        // Reduce back into galois field (can also be folded into above loop)
-        val high = Integer.highestOneBit(poly)
-        for (bit <- 3 to 0) {
-          if ((c & (high << bit)) != 0) {
-            c = sub(c, poly << bit)
-          }
-        }
-
-        c
       }
+
+      // Reduce back into galois field (can also be folded into above loop)
+      val high = Integer.highestOneBit(poly)
+      for (bit <- 3 to (0, -1)) {
+        if ((c & (high << bit)) != 0) {
+          c = sub(c, poly << bit)
+        }
+      }
+
+      c
+    }
+  assert(m.size == 16*16)
 
   type E = Int
 
   def add(a: E, b: E): E = a ^ b
   def neg(a: E): E = a
 
-  def mul(a: E, b: E): E = ???
-  def inv(a: E): E = ???
+  def mul(a: E, b: E): E = {
+    require(0 <= a && a <= 0xF)
+    require(0 <= b && b <= 0xF)
+    m(a + b*16)
+  }
+
+  def inv(a: E): E = (0 to 0xF find (b => mul(a, b) == 1)).get
+
+  def printMultiplicationTable(): Unit = {
+    for (a <- -1 to 0xF) {
+      for (b <- -1 to 0xF) {
+        if (a == -1) {
+          if (b == -1) {
+            printf(" * | ")
+          } else {
+            printf("%x ", b)
+          }
+        } else if (b == -1) {
+          printf(" %x | ", a)
+        } else {
+          printf("%x ", mul(a, b))
+        }
+      }
+      println()
+    }
+  }
 }

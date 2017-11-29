@@ -21,9 +21,9 @@ object Expression {
     case c @ Constant(_) => throw new IllegalArgumentException(c.toString)
     case Variable(n) => Expression(f => f(n))
     case Operator2(op, v1, v2) =>
-      toExpression(v1)(f).map2(toExpression(v2))(function2(f)(op))
+      (toExpression(v1)(f) map2 toExpression(v2)(f))(function2(f)(op))
     case opn @ OperatorN(op, as) =>
-      val args = sequence(as.map(toExpression(_)(f))).map(_.toSeq)
+      val args = sequence(as map (toExpression(_)(f))) map (_.toSeq)
       args.map{ xs: Seq[E] =>
         xs.length match {
           case 1 => function1(f)(op)(xs.head)

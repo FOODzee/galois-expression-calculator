@@ -13,7 +13,7 @@ not yet done:
 - `GF(p^m)`
 - easier set up of reduction polynomial
 - replaceability of field without parser/scanner modification
-- elliptic curve is not parameterized (needs to be separate class like GaloisField)
+- elliptic curve is not parameterized (it'd better be separate class like GaloisField)
 
 ### Usage
 

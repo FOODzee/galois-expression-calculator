@@ -6,8 +6,6 @@ package io.github.foodzee.math
   * @author foodzee.
   */
 trait Field[E] {
-  def U: E
-
   def neg(a: E): E
   def inv(a: E): E
 
@@ -16,12 +14,11 @@ trait Field[E] {
   def mul(a: E, b: E): E
   def div(a: E, b: E): E = mul(a, inv(b))
 
-  def pow(a: E, n: Int): E = (U /: (for (_ <- 1 to n) yield a))(mul)
+  def pow(a: E, n: Int): E = Seq.fill(n)(a) reduce mul
   def asInt(a: E): Int
 }
 
 object RealField extends Field[Double] {
-  def U = 1.0
   def asInt(a: Double) = a.toInt
 
   override def neg(a: Double) = -a

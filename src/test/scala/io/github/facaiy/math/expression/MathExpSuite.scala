@@ -20,6 +20,12 @@ class MathExpSuite extends FunSpec {
       assert(ex.eval(Map("a1" -> 8, "a2" -> 2)) === 6)
     }
 
+    //it("with unary") {
+    //  val str = "-($x + 1)*$y"
+    //  val ex = MathExp.parse(str)
+    //  assert(ex.eval(Map("x" -> 2, "y" -> 3)) === 5)
+    //}
+
     it("invalid string") {
       val str = "1.0 + sqrt( - 2"
 

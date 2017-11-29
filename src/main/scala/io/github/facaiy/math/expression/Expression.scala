@@ -42,8 +42,7 @@ object Expression {
 
 object FunctionRegister {
   def function1[E](f: Field[E]): Map[String, E => E] = Map(
-    "inv" -> f.inv,
-    "-" -> f.neg
+    "inv" -> f.inv
   )
 
   def function2[E](f: Field[E]): Map[String, (E, E) => E] = Map(

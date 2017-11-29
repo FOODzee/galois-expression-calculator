@@ -32,7 +32,6 @@ class GaloisField(p: Int, n: Int, poly: Int) extends Field[Int] {
     }
   assert(m.size == 16*16)
 
-  def U = 1
   def asInt(a: Int) = a
 
   def add(a: Int, b: Int): Int = a ^ b
@@ -44,7 +43,12 @@ class GaloisField(p: Int, n: Int, poly: Int) extends Field[Int] {
     m(a + b*16)
   }
 
-  def inv(a: Int): Int = (0 to 0xF find (b => mul(a, b) == 1)).get
+  def inv(a: Int): Int = {
+    if (a == 0) throw new ArithmeticException("0 has no inverse")
+    val i = 1 to 0xF find (b => mul(a, b) == 1)
+    assert(i.isDefined, a)
+    i.get
+  }
 
   def printMultiplicationTable(): Unit = {
     for (a <- -1 to 0xF) {

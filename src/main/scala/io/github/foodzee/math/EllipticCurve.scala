@@ -1,28 +1,31 @@
 package io.github.foodzee.math
 
+import io.github.facaiy.math.expression.MathExp.parse
+import io.github.foodzee.math.galois.GaloisField
+
+import scala.collection.mutable
+
 /**
   * @author ijorch
   */
 object EllipticCurve extends App {
-  import io.github.facaiy.math.expression.MathExp.parse
-  import io.github.foodzee.math.galois.GaloisField
-
-  import scala.collection.mutable
 
   implicit val GF = new GaloisField(2, 4, 0x13) // 0x13 == 0b10011 == x^4 + x + 1
 
+  // elliptic curve equation: left- and right-hand sides
   val left = parse("$y ** 2 + $x * $y")
   val right = parse("$x ** 3 + $b * $x ** 2 + 1")
 
-  val g = 2
-  val b = GF.pow(g, 4)
+  val g = 2 // primitive element of GF
+  val b = GF.pow(g, 4) // parameter of curve
 
+  /** point in projective plane */
   case class Point(x: Int, y: Int, z: Int = 1) {
     override def toString = f"($x%x, $y%x)"
   }
   val ZERO = Point(0, 0)
 
-  // points in projective plane
+  /** set of points of elliptic curve */
   val points: Seq[Point] = ZERO +: (
     for {
       x <- 0 to 0xF
@@ -34,42 +37,12 @@ object EllipticCurve extends App {
 
   println(points map (_.toString) mkString "; ")
 
-  def fairSum(P: Point, Q: Point): Point = { // incorrect
-    P match { case Point(0, 0, _) => return Q; case _ => }
-    Q match { case Point(0, 0, _) => return P; case _ => }
+  // following methods are definitions of addition in the group of defined elliptic curve
+  // they came from paper https://link.springer.com/content/pdf/10.1007/3-540-46416-6_27.pdf
+  // TODO: extract to special class (together with points: Seq)
 
-    val vars = mutable.Map("b" -> b,
-      "x1" -> P.x, "y1" -> P.y,
-      "x2" -> Q.x, "y2" -> Q.y
-    )
-
-    val (l, nu) = if (P.x != Q.x) {
-      ( parse("($y2 - $y1) / ($x2 - $x1)"),
-        parse("($y1 * $x2 - $y2 * $x1) / ($x2 - $x1)")
-      )
-    } else if (parse("$y1 + $y2 + $x1").eval(vars) != 0) {
-      ( parse("(3 * $x1**2 + 2 * $b * $x1 - $y1) / (2*$y1 + $x1)"),
-        parse("($x1 ** 3 + 2) / (2*$y1 + $x1)")
-      )
-    } else {
-      return ZERO
-    }
-
-    vars ++= Map(
-      "l" -> l.eval(vars),
-      "nu" -> nu.eval(vars)
-    )
-
-    val x3 = parse("$l ** 2 + $l - $b - $x1 - $x2")
-      .eval(vars)
-    val y3 = parse("($l + 1)*$x3 - $nu")
-      .eval(vars + ("x3" -> x3))
-
-    Point(x3, y3)
-  }
-  def fairMul(m: Int, P: Point): Point = Seq.fill(m)(P) reduce sum
-
-  def projectiveDouble(P: Point): Point = {
+  /** @return P + P */
+  def projectiveX2(P: Point): Point = {
     val vars = mutable.Map("b" -> b,
       "x" -> P.x, "y" -> P.y, "z" -> P.z
     )
@@ -94,10 +67,12 @@ object EllipticCurve extends App {
       )
     }
   }
+
+  /** @return P1 + P2 */
   def projectiveSum(P1: Point, P2: Point): Point = {
     if (P1 == ZERO) return P2
     if (P2 == ZERO) return P1
-    if (P1 == P2) return projectiveDouble(P1)
+    if (P1 == P2) return projectiveX2(P1)
 
     val vars = mutable.Map("b" -> b,
       "x1" -> P1.x, "y1" -> P1.y, "z1" -> P1.z,
@@ -128,9 +103,12 @@ object EllipticCurve extends App {
     }
   }
 
-  def sum = projectiveSum _
-  def mul = fairMul _
+  def sum = projectiveSum _ // alias-shorthand
 
+  /** @return [m]*P */
+  def mul(m: Int, P: Point): Point = Seq.fill(m)(P) reduce sum  // can be more efficient if `projectiveX2` would be used too
+
+  // check that elliptic curve points set with defined addition is closed and hence is a group
   assert((for (p <- points; q <- points) yield sum(p, q)) forall points.contains,
     "sum is broken. Counterexample is " + {
       val Some((p, q, s)) = (for (p <- points; q <- points) yield (p, q, sum(p, q))) find {case (_,_,s) => !points.contains(s) }
@@ -139,6 +117,9 @@ object EllipticCurve extends App {
   )
   assert((for (p <- points; m <- 1 to 16) yield mul(m, p)) forall points.contains, "mul is broken")
 
+  // following are calculations for my university assignment
+
+  /** generator of the curve points set */
   val G = (points find { G =>
     points forall { p =>
       (1 to 16) exists (m => mul(m, G) == p)

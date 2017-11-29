@@ -7,27 +7,15 @@ features:
 + parentheses `( )` and comma `,`
 + variable name: `$` with valid Java variable name
 + finite field arithmetic
++ elliptic curve group arithmetic 
 
-### Install
-
-_**TODO**_
+not yet done:
+- `GF(p^m)`
+- easier set up of reduction polynomial
+- replaceability of field without parser modification
+- elliptic curve is not parameterized (needs to be separate class like GaloisField)
 
 ### Usage
 
-A simple example:
-
-_**TODO:**_ rework example below
-
-```scala
-import io.github.facaiy.math.expression.MathExp
-
-val str = "1 + sqrt(2 * $a1) + $a2 ** 2"
-val ex = MathExp.parse(str)
-
-val variables = Map("a1" -> 2, "a2" -> 1)
-val output = ex.eval(variables)
-// output = 4.0
-
-val output1 = ex.eval(Map("a1" -> 8.0, "a2" -> 2))
-// output1 = 9.0
-```
+See `test/scala/io/github/facaiy/math/expression/MathExpSuite.scala`  
+and `main/scala/io/github/foodzee/math/{Main, EllipticCurve}.scala`

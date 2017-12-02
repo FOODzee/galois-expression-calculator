@@ -93,7 +93,15 @@ object EllipticCurve extends App {
   def sum = projectiveSum _ // alias-shorthand
 
   /** @return [m]*P */
-  def mul(m: Int, P: Point): Point = Seq.fill(m)(P) reduce sum  // can be more efficient if `projectiveX2` would be used too
+  def mul(m: Int, P: Point): Point = m match {
+    case 0       => ZERO
+    case 1       => P
+    case 2*k     => mul(k, projectiveX2(P))
+    case 2*k + 1 => sum(P, mul(k, projectiveX2(P)))
+    case _       => throw new IllegalArgumentException
+  }
+  object * { def unapply(n: Int) = if (n % 2 == 0) Some(2, n/2) else None }
+  object + { def unapply(n: Int) = if (n > 0)      Some(n-1, 1) else None }
 
   // check that elliptic curve points set with defined addition is closed and hence is a group
   assert((for (p <- points; q <- points) yield sum(p, q)) forall points.contains,
